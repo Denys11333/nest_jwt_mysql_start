@@ -6,7 +6,7 @@ import { CurrentUser } from "./current-user.decorator";
 import { User } from "../user/user.model";
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags("Авторизація")
+@ApiTags("Authorization")
 @Controller('v1/auth')
 export class AuthController {
 

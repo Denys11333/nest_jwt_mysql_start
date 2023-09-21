@@ -3,7 +3,9 @@ import {Roles} from "../auth/role-auth.decorator";
 import {RolesGuard} from "../auth/roles.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { User } from "./user.model";
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags("User")
 @Controller('v1/users')
 export class UserController {
     constructor() {
