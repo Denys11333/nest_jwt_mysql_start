@@ -40,7 +40,7 @@ export class RolesGuard implements CanActivate {
             req.user = user;
             return user.roles.some(role => requiredRoles.includes(role.roleName));
         } catch (e) {
-            throw new HttpException( 'token invalid or you not have a needed role', HttpStatus.FORBIDDEN)
+            throw new HttpException('token invalid', HttpStatus.FORBIDDEN)
         }
     }
 
