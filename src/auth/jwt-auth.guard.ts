@@ -1,30 +1,40 @@
-import {CanActivate, ExecutionContext, Injectable, UnauthorizedException} from "@nestjs/common";
-import {Observable} from "rxjs";
-import {JwtService} from "@nestjs/jwt";
-
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    UnauthorizedException,
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-    constructor(private jwtService: JwtService) {
-    }
+    constructor(private jwtService: JwtService) {}
 
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-        const req = context.switchToHttp().getRequest()
+    canActivate(
+      context: ExecutionContext,
+    ): boolean | Promise<boolean> | Observable<boolean> {
+        const req = context.switchToHttp().getRequest();
+        const headers: { authorization: string } = req.headers;
+        const authHeader = headers.authorization;
+
+        if (!authHeader) {
+            throw new UnauthorizedException('Заголовок Authorization відсутній.');
+        }
+
+        const [bearer, token] = authHeader.split(' ');
+
+        if (bearer.toLowerCase() !== 'bearer' || !token) {
+            throw new UnauthorizedException({
+                message: 'Невірний формат токену.',
+            });
+        }
+
         try {
-            const authHeader = req.headers.authorization;
-            const bearer = authHeader.split(' ')[0]
-            const token = authHeader.split(' ')[1]
-
-            if (bearer !== 'Bearer' || !token) {
-                throw new UnauthorizedException({message: 'User is not authorize'})
-            }
-
-            const user = this.jwtService.verify(token);
-            req.user = user;
+            req.user = this.jwtService.verify(token);
             return true;
         } catch (e) {
-            throw new UnauthorizedException({message: 'User is not authorize'})
+            throw new UnauthorizedException({ message: 'Тонек не валідний.' });
         }
     }
-
 }

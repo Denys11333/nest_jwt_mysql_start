@@ -4,44 +4,52 @@ import {
     HttpException,
     HttpStatus,
     Injectable,
-    UnauthorizedException
-} from "@nestjs/common";
-import {Observable} from "rxjs";
-import {JwtService} from "@nestjs/jwt";
-import {Reflector} from "@nestjs/core";
-import {ROLES_KEY} from "./role-auth.decorator";
-
+    UnauthorizedException,
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { JwtService } from '@nestjs/jwt';
+import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from './role-auth.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private jwtService: JwtService,
-                private reflector: Reflector) {
-    }
+    constructor(private jwtService: JwtService, private reflector: Reflector) {}
 
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    canActivate(
+      context: ExecutionContext,
+    ): boolean | Promise<boolean> | Observable<boolean> {
+        const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+          ROLES_KEY,
+          [context.getHandler(), context.getClass()],
+        );
+
+        if (!requiredRoles) {
+            return true;
+        }
+
+        const req = context.switchToHttp().getRequest();
+        const headers: { authorization: string } = req.headers;
+        const authHeader = headers.authorization;
+
+        if (!authHeader) {
+            throw new UnauthorizedException('Заголовок Authorization відсутній.');
+        }
+
+        const [bearer, token] = authHeader.split(' ');
+
+        if (bearer.toLowerCase() !== 'bearer' || !token) {
+            throw new UnauthorizedException({
+                message: 'Невірний формат токену.',
+            });
+        }
+
         try {
-            const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-                context.getHandler(),
-                context.getClass(),
-            ])
-            if (!requiredRoles) {
-                return true;
-            }
-            const req = context.switchToHttp().getRequest();
-            const authHeader = req.headers.authorization;
-            const bearer = authHeader.split(' ')[0]
-            const token = authHeader.split(' ')[1]
-
-            if (bearer !== 'Bearer' || !token) {
-                throw new UnauthorizedException({message: 'User is not authorize'})
-            }
-
             const user = this.jwtService.verify(token);
             req.user = user;
-            return user.roles.some(role => requiredRoles.includes(role.roleName));
+
+            return user.roles.some((role: string) => requiredRoles.includes(role));
         } catch (e) {
-            throw new HttpException('token invalid', HttpStatus.FORBIDDEN)
+            throw new HttpException('Токен не валідний.', HttpStatus.FORBIDDEN);
         }
     }
-
 }
