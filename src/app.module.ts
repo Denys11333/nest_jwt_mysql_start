@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from "./user/user.module";
-import { AuthModule } from "./auth/auth.module";
-import { TypeOrmModule } from "@nestjs/typeorm";
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { RoleModule } from "./role/role.module";
+import { RoleModule } from './role/role.module';
 import { User } from './user/user.model';
 import { Role } from './role/role.model';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env'
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -20,7 +20,7 @@ import { Role } from './role/role.model';
       port: Number(process.env.MYSQL_PORT),
       username: process.env.MYSQL_USER,
       entities: [User, Role],
-      synchronize: true
+      synchronize: true,
     }),
     UserModule,
     AuthModule,

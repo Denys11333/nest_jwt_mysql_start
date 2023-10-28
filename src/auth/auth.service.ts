@@ -1,57 +1,81 @@
-import {HttpException, HttpStatus, Injectable, UnauthorizedException} from '@nestjs/common';
-import {CreateUserDto} from "../user/dto/create-user-dto";
-import {UserService} from "../user/user.service";
-import {JwtService} from "@nestjs/jwt";
-import * as bcrypt from 'bcryptjs'
-import {User} from "../user/user.model";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { UserService } from '../user/user.service';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+import { User } from '../user/user.model';
+import { UserCredentialDto } from '../user/dto/user-credential.dto';
 
 @Injectable()
 export class AuthService {
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+  ) {}
 
-    constructor(private userService: UserService,
-                private jwtService: JwtService) {
+  async login(userDto: UserCredentialDto) {
+    const user = await this.validateUser(userDto);
+    return this.generateToken(user);
+  }
+
+  async registration(userCredential: UserCredentialDto) {
+    const candidate = await this.userService.getUserByUsername(
+      userCredential.username,
+    );
+
+    if (candidate) {
+      throw new HttpException(
+        "Користувач з таким користувацьким ім'ям вже існує.",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    async login(userDto: CreateUserDto) {
-        const user = await this.validateUser(userDto);
-        return this.generateToken(user);
+    const hashPassword = await bcrypt.hash(userCredential.password, 5);
+
+    await this.userService.createUser({
+      ...userCredential,
+      password: hashPassword,
+    });
+
+    return 'Користувач зареєстрованний.';
+  }
+
+  async generateToken(user: User) {
+    const payload = {
+      username: user.username,
+      roles: user.roles.map((role) => role.roleName),
+    };
+    return {
+      token: this.jwtService.sign(payload),
+    };
+  }
+
+  private async validateUser(userCredential: UserCredentialDto) {
+    const user = await this.userService.getUserByUsername(
+      userCredential.username,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException({
+        message: 'Неправильний логін або пароль.',
+      });
     }
 
-    async registration(userDto: CreateUserDto) {
-        const candidate = await this.userService.getUserByUsername(userDto.username);
+    const passwordEquals = await bcrypt.compare(
+      userCredential.password,
+      user.password,
+    );
 
-        if (candidate) {
-            throw new HttpException('User already exist', HttpStatus.BAD_REQUEST);
-        }
-
-        const hashPassword = await bcrypt.hash(userDto.password, 5);
-
-        const user = await this.userService.createUser({...userDto, password: hashPassword});
-
-        return this.generateToken(user)
+    if (!passwordEquals) {
+      throw new UnauthorizedException({
+        message: 'Неправильний логін або пароль.',
+      });
     }
 
-    async generateToken(user: User) {
-        const payload = {id: user.id, username: user.username,roles: user.roles};
-        return {
-            status: true,
-            token: this.jwtService.sign(payload)
-        }
-    }
-
-    private async validateUser(userDto: CreateUserDto) {
-        const user = await this.userService.getUserByUsername(userDto.username)
-
-        if (!user) {
-            throw new UnauthorizedException({message: "Incorrect credentials"})
-        }
-
-        const passwordEquals = await bcrypt.compare(userDto.password, user.password);
-
-        if (!passwordEquals) {
-            throw new UnauthorizedException({message: "Incorrect credentials"})
-        }
-
-        return user
-    }
+    return user;
+  }
 }

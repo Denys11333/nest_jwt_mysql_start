@@ -1,37 +1,33 @@
-import {Body, Controller, Get, Post, UseGuards} from '@nestjs/common';
-import {CreateUserDto} from "../user/dto/create-user-dto";
-import {AuthService} from "./auth.service";
-import {JwtAuthGuard} from "./jwt-auth.guard";
-import { CurrentUser } from "./current-user.decorator";
-import { User } from "../user/user.model";
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UserCredentialDto } from '../user/dto/user-credential.dto';
 
-@ApiTags("Authorization")
+@ApiTags('Authorization')
 @Controller('v1/auth')
 export class AuthController {
+  constructor(private authService: AuthService) {}
 
-    constructor(private authService: AuthService) {
-    }
+  @ApiOperation({})
+  @ApiResponse({})
+  @Post('login')
+  login(@Body() userCredentialDto: UserCredentialDto) {
+    return this.authService.login(userCredentialDto);
+  }
 
-    @ApiOperation({})
-    @ApiResponse({})
-    @Post('login')
-    login(@Body() userDto: CreateUserDto) {
-        return this.authService.login(userDto);
-    }
+  @ApiOperation({})
+  @ApiResponse({})
+  @Post('registration')
+  registration(@Body() userCredentialDto: UserCredentialDto) {
+    return this.authService.registration(userCredentialDto);
+  }
 
-    @ApiOperation({})
-    @ApiResponse({})
-    @Post('registration')
-    registration(@Body() userDto: CreateUserDto) {
-        return this.authService.registration(userDto);
-    }
-
-    @ApiOperation({})
-    @ApiResponse({})
-    @Get('isJwtValid')
-    @UseGuards(JwtAuthGuard)
-    async isJwtValid(@CurrentUser() user:User) {
-        return {status : true, username: user.username}
-    }
-}   
+  @ApiOperation({})
+  @ApiResponse({})
+  @Get('isJwtValid')
+  @UseGuards(JwtAuthGuard)
+  async isJwtValid() {
+    return { message: 'Токен валідний' };
+  }
+}
