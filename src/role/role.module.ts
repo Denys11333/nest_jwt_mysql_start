@@ -2,9 +2,9 @@ import { forwardRef, Module } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { RoleController } from './role.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Role } from './role.model';
-import { User } from '../user/user.model';
 import { AuthModule } from '../auth/auth.module';
+import { Role } from './entities/role.entity';
+import { User } from '../user/entities/user.entity';
 
 @Module({
   providers: [RoleService],
