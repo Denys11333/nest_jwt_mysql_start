@@ -1,3 +1,2 @@
 # Teamplate
-
-## Nestjs starter (mysql, jwt strategy)
+Nestjs starter (mysql, jwt strategy)
