@@ -1,21 +1,24 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
+import { CustomSwagger } from './custom-swagger.provider';
 
 async function bootstrap() {
-  const PORT = process.env.PORT || 5000;
+  const PORT = new ConfigService().get('PORT');
   const app = await NestFactory.create(AppModule);
+
   app.enableCors();
 
-  const config = new DocumentBuilder()
-    .setTitle('Title')
-    .setDescription('The cats API description')
-    .setVersion('1.0')
-    .build();
+  app.setGlobalPrefix('api/v1');
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  app.useGlobalPipes(new ValidationPipe());
+
+  CustomSwagger(app);
 
   await app.listen(PORT, () => console.log(`Server started on port = ${PORT}`));
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  console.error('Server not started, error:', error);
+});
