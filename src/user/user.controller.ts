@@ -6,7 +6,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { UserRole } from '../auth/user-roles.enum';
 import { User } from './entities/user.entity';
 
-@ApiTags('User')
+@ApiTags('Users')
 @Controller('v1/users')
 export class UserController {
   constructor() {}
