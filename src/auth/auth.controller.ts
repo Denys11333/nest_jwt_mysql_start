@@ -7,7 +7,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserCredentialDto } from '../user/dto/user-credential.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 
 @ApiTags('Authorization')
 @Controller('v1/authorization')
@@ -28,7 +28,7 @@ export class AuthController {
     },
   })
   @Post('login')
-  login(@Body() userCredentialDto: UserCredentialDto) {
+  login(@Body() userCredentialDto: CreateUserDto) {
     return this.authService.login(userCredentialDto);
   }
 
@@ -40,7 +40,7 @@ export class AuthController {
     },
   })
   @Post('registration')
-  registration(@Body() userCredentialDto: UserCredentialDto) {
+  registration(@Body() userCredentialDto: CreateUserDto) {
     return this.authService.registration(userCredentialDto);
   }
 

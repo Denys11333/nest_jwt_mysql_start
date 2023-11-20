@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoleService } from '../role/role.service';
 import { CreateRoleDto } from '../role/dto/create-role.dto';
-import { UserCredentialDto } from './dto/user-credential.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class UserService {
     private roleService: RoleService,
   ) {}
 
-  async createUser(userCredential: UserCredentialDto) {
+  async createUser(userCredential: CreateUserDto) {
     let role = await this.roleService.getRoleByValue('USER');
 
     if (!role) {

@@ -7,7 +7,7 @@ import {
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { UserCredentialDto } from '../user/dto/user-credential.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 import { User } from '../user/entities/user.entity';
 
 @Injectable()
@@ -17,12 +17,12 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(userDto: UserCredentialDto) {
+  async login(userDto: CreateUserDto) {
     const user = await this.validateUser(userDto);
     return this.generateToken(user);
   }
 
-  async registration(userCredential: UserCredentialDto) {
+  async registration(userCredential: CreateUserDto) {
     const candidate = await this.userService.getUserByUsername(
       userCredential.username,
     );
@@ -54,7 +54,7 @@ export class AuthService {
     };
   }
 
-  private async validateUser(userCredential: UserCredentialDto) {
+  private async validateUser(userCredential: CreateUserDto) {
     const user = await this.userService.getUserByUsername(
       userCredential.username,
     );

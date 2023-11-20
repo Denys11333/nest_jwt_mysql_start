@@ -1,7 +1,7 @@
 import { IsString, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserCredentialDto {
+export class CreateUserDto {
   @ApiProperty()
   @IsString({ message: 'Логін має бути рядком.' })
   @Length(2, 30, {
