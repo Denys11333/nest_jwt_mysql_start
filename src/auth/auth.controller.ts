@@ -10,7 +10,7 @@ import {
 import { UserCredentialDto } from '../user/dto/user-credential.dto';
 
 @ApiTags('Authorization')
-@Controller('v1/auth')
+@Controller('v1/authorization')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
