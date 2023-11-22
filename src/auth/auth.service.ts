@@ -23,7 +23,7 @@ export class AuthService {
   }
 
   async registration(userCredential: CreateUserDto) {
-    const candidate = await this.userService.getUserByUsername(
+    const candidate = await this.userService.findUserForAuth(
       userCredential.username,
     );
 
@@ -55,7 +55,7 @@ export class AuthService {
   }
 
   private async validateUser(userCredential: CreateUserDto) {
-    const user = await this.userService.getUserByUsername(
+    const user = await this.userService.findUserForAuth(
       userCredential.username,
     );
 

@@ -4,7 +4,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { UserRole } from '../auth/user-roles.enum';
-import { User } from './entities/user.entity';
+import { PayloadUserDto } from './dto/payload-user.dto';
 
 @ApiTags('Users')
 @Controller('v1/users')
@@ -13,8 +13,8 @@ export class UserController {
 
   @Roles(UserRole.USER)
   @UseGuards(RolesGuard)
-  @Get('currentUser')
-  currentUser(@CurrentUser() user: User) {
+  @Get('current-user')
+  currentUser(@CurrentUser() user: PayloadUserDto) {
     return user;
   }
 }

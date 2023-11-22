@@ -46,7 +46,7 @@ export class AuthController {
 
   @ApiOperation({})
   @ApiResponse({})
-  @Get('isJwtValid')
+  @Get('is-jwt-valid')
   @UseGuards(JwtAuthGuard)
   async isJwtValid() {
     return { message: 'Токен валідний' };

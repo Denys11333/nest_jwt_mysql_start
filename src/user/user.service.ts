@@ -28,7 +28,7 @@ export class UserService {
     return await this.userRepository.save({ ...userCredential, roles: [role] });
   }
 
-  async getUserByUsername(username: string) {
+  async findUserForAuth(username: string) {
     return await this.userRepository.findOne({
       where: { username: username },
       relations: {
