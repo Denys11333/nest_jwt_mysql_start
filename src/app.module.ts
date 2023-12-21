@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from './database.config';
 import { UserModule } from './user/user.module';
+import { MyLoggerModule } from './my-logger/my-logger.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserModule } from './user/user.module';
     UserModule,
     AuthModule,
     RoleModule,
+    MyLoggerModule,
   ],
   controllers: [],
   providers: [],
