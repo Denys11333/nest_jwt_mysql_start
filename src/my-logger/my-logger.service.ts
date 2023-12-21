@@ -15,28 +15,31 @@ export class MyLoggerService extends ConsoleLogger {
       timeZone: 'Europe/Kyiv',
     }).format(new Date())}\t${entry}\n`;
 
+    const defaultLoggerPath = './../../logs';
+    const defaultLoggerFileName = 'myLogFile.log';
+
     try {
       if (
         !fs.existsSync(
           path.join(
             __dirname,
-            this.configService.get<string>('LOGGER_PATH') || './../../logs',
+            this.configService.get<string>('LOGGER_PATH') || defaultLoggerPath,
           ),
         )
       ) {
         await fsPromises.mkdir(
           path.join(
             __dirname,
-            this.configService.get<string>('LOGGER_PATH') || './../../logs',
+            this.configService.get<string>('LOGGER_PATH') || defaultLoggerPath,
           ),
         );
       }
       await fsPromises.appendFile(
         path.join(
           __dirname,
-          this.configService.get<string>('LOGGER_PATH') || './../../logs',
+          this.configService.get<string>('LOGGER_PATH') || defaultLoggerPath,
           this.configService.get<string>('LOGGER_LOGS_FILENAME') + '.log' ||
-            'myLogFile.log',
+            defaultLoggerFileName,
         ),
         formattedEntry,
       );
