@@ -5,6 +5,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { CustomSwagger } from './custom-swagger.provider';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
+const configService = new ConfigService();
+
 async function bootstrap() {
   const PORT = new ConfigService().get('PORT');
   const app = await NestFactory.create(AppModule);
@@ -12,7 +14,15 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
 
-  app.enableCors();
+  const allowedOrigins = configService
+    .get<string>('ALLOWED_ORIGINS')
+    .replace(/\n/g, '')
+    .split(',')
+    .map((origin) => origin.trim());
+
+  app.enableCors({
+    origin: allowedOrigins.includes('*') ? '*' : allowedOrigins,
+  });
 
   app.setGlobalPrefix('api');
 
