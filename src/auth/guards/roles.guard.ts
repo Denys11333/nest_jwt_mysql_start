@@ -1,19 +1,19 @@
 import {
   CanActivate,
   ExecutionContext,
-  HttpException,
-  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from './role-auth.decorator';
+import { ROLES_KEY } from '../decorators/role-auth.decorator';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private jwtService: JwtService, private reflector: Reflector) {}
+  configService = new ConfigService();
 
   canActivate(
     context: ExecutionContext,
@@ -39,17 +39,26 @@ export class RolesGuard implements CanActivate {
 
     if (bearer.toLowerCase() !== 'bearer' || !token) {
       throw new UnauthorizedException({
-        message: 'Невірний формат токену.',
+        message: 'Невірний формат access токену.',
       });
     }
 
     try {
-      const user = this.jwtService.verify(token);
+      const user = this.jwtService.verify(token, {
+        secret:
+          this.configService.get<string>('ACCESS_TOKEN_SECRET') ||
+          'SECRET__ACCESS',
+      });
       req.user = user;
 
       return user.roles.some((role: string) => requiredRoles.includes(role));
     } catch (e) {
-      throw new HttpException('Токен не валідний.', HttpStatus.FORBIDDEN);
+      if (e instanceof TokenExpiredError) {
+        throw new UnauthorizedException({
+          message: 'Термін дії access токену закінчився.',
+        });
+      }
+      throw new UnauthorizedException({ message: 'Токен не валідний.' });
     }
   }
 }

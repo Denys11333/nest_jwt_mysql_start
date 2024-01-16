@@ -1,6 +1,14 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtHeaderAuthGuard } from './guards/jwt-header-auth.guard';
 import {
   ApiCreatedResponse,
   ApiOperation,
@@ -8,6 +16,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { Response } from 'express';
+import { Request } from 'express';
+import { JwtCookieAuthGuard } from './guards/jwt-cookie-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { PayloadUserDto } from 'src/user/dto/payload-user.dto';
 
 @ApiTags('Authorization')
 @Controller('v1/authorization')
@@ -28,8 +41,11 @@ export class AuthController {
     },
   })
   @Post('login')
-  login(@Body() userCredentialDto: CreateUserDto) {
-    return this.authService.login(userCredentialDto);
+  login(
+    @Res({ passthrough: true }) response: Response,
+    @Body() userCredentialDto: CreateUserDto,
+  ) {
+    return this.authService.login(response, userCredentialDto);
   }
 
   @ApiOperation({})
@@ -46,8 +62,20 @@ export class AuthController {
 
   @ApiOperation({})
   @ApiResponse({})
+  @UseGuards(JwtCookieAuthGuard)
+  @Get('refresh')
+  async refreshAccessToken(
+    @Res({ passthrough: true }) response: Response,
+    @Req() request: Request,
+    @CurrentUser() user: PayloadUserDto,
+  ) {
+    return await this.authService.refreshAccessToken(response, request, user);
+  }
+
+  @ApiOperation({})
+  @ApiResponse({})
+  @UseGuards(JwtHeaderAuthGuard)
   @Get('is-jwt-valid')
-  @UseGuards(JwtAuthGuard)
   async isJwtValid() {
     return { message: 'Токен валідний' };
   }

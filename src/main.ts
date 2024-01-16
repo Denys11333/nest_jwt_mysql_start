@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { CustomSwagger } from './custom-swagger.provider';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { MyLoggerService } from './my-logger/my-logger.service';
+import * as cookieParser from 'cookie-parser';
 
 const configService = new ConfigService();
 
@@ -29,6 +30,8 @@ async function bootstrap() {
   app.enableCors({
     origin: allowedOrigins.includes('*') ? '*' : allowedOrigins,
   });
+
+  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 

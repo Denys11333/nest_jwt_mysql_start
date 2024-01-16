@@ -15,13 +15,12 @@ export class MyLoggerService extends ConsoleLogger {
     return `${timestamp} | ${level} | ${contextString} --- ${message}`;
   });
 
-  loggerPathDirectory = this.configService.get<string>('LOGGER_PATH')
-    ? this.configService.get<string>('LOGGER_PATH')
-    : '../logs/';
+  loggerPathDirectory =
+    this.configService.get<string>('LOGGER_PATH') || '../logs/';
 
-  loggerFileName = this.configService.get<string>('LOGGER_LOGS_FILENAME')
-    ? this.configService.get<string>('LOGGER_LOGS_FILENAME')
-    : 'myLoggerFile.log';
+  loggerFileName =
+    this.configService.get<string>('LOGGER_LOGS_FILENAME') ||
+    'myLoggerFile.log';
 
   logger = createLogger({
     level: 'debug',

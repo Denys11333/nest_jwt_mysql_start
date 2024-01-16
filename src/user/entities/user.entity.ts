@@ -23,6 +23,10 @@ export class User {
   password: string;
 
   @ApiProperty()
+  @Column()
+  refreshToken: string;
+
+  @ApiProperty()
   @ManyToMany(() => Role)
   @JoinTable()
   roles: Role[];

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoleService } from '../role/role.service';
@@ -35,5 +35,17 @@ export class UserService {
         roles: true,
       },
     });
+  }
+
+  async setRefreshToken(userId: number, refreshToken: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found.`);
+    }
+
+    user.refreshToken = refreshToken;
+
+    return this.userRepository.save(user);
   }
 }

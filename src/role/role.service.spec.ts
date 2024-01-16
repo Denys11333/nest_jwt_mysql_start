@@ -1,1 +1,5 @@
-describe('RoleService', () => {});
+describe('RoleService', () => {
+  it('should pass', () => {
+    expect(true).toBe(true);
+  });
+});

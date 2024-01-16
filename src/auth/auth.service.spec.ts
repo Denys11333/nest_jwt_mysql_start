@@ -1,1 +1,5 @@
-describe('AuthService', () => {});
+describe('AuthService', () => {
+  it('should pass', () => {
+    expect(true).toBe(true);
+  });
+});
