@@ -23,7 +23,7 @@ export class User {
   password: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ nullable: true })
   refreshToken: string;
 
   @ApiProperty()

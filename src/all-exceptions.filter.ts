@@ -33,11 +33,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
 
     if (exception instanceof HttpException) {
       myResponseObj.statusCode = exception.getStatus();
-      myResponseObj.response = exception.getResponse();
-
-      if (myResponseObj.statusCode === HttpStatus.NOT_FOUND) {
-        myResponseObj.response = exception.getResponse()['message'];
-      }
+      myResponseObj.response = exception.message;
     } else {
       myResponseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       myResponseObj.response = 'Internal Server Error';

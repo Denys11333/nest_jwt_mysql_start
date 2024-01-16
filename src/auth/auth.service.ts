@@ -46,7 +46,7 @@ export class AuthService {
 
     if (candidate) {
       throw new HttpException(
-        "Користувач з таким користувацьким ім'ям вже існує.",
+        "Користувач з таким користувацьким ім'ям вже існує",
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -58,7 +58,32 @@ export class AuthService {
       password: hashPassword,
     });
 
-    return 'Користувач зареєстрованний.';
+    return 'Користувач зареєстрованний';
+  }
+
+  private async validateUser(userCredential: CreateUserDto) {
+    const user = await this.userService.findUserForAuth(
+      userCredential.username,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException({
+        message: 'Неправильний логін або пароль',
+      });
+    }
+
+    const passwordEquals = await bcrypt.compare(
+      userCredential.password,
+      user.password,
+    );
+
+    if (!passwordEquals) {
+      throw new UnauthorizedException({
+        message: 'Неправильний логін або пароль',
+      });
+    }
+
+    return user;
   }
 
   private async generateTokens(user: User) {
@@ -96,31 +121,6 @@ export class AuthService {
     };
   }
 
-  private async validateUser(userCredential: CreateUserDto) {
-    const user = await this.userService.findUserForAuth(
-      userCredential.username,
-    );
-
-    if (!user) {
-      throw new UnauthorizedException({
-        message: 'Неправильний логін або пароль.',
-      });
-    }
-
-    const passwordEquals = await bcrypt.compare(
-      userCredential.password,
-      user.password,
-    );
-
-    if (!passwordEquals) {
-      throw new UnauthorizedException({
-        message: 'Неправильний логін або пароль.',
-      });
-    }
-
-    return user;
-  }
-
   async refreshAccessToken(
     response: Response,
     request: Request,
@@ -135,7 +135,9 @@ export class AuthService {
     const user = await this.userService.findUserForAuth(currentUser.username);
 
     if (user.refreshToken !== oldRefreshToken) {
-      throw new UnauthorizedException('Incorect refresh token.');
+      throw new UnauthorizedException(
+        'Refresh токен не дійсний для теперішнього користувача',
+      );
     }
 
     const tokens = await this.generateTokens(user);

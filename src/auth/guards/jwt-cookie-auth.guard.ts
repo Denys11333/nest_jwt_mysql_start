@@ -20,7 +20,7 @@ export class JwtCookieAuthGuard implements CanActivate {
     const tokenFromCookie = req.cookies['refreshToken'];
 
     if (!tokenFromCookie) {
-      throw new UnauthorizedException('Refresh токен відсутній.');
+      throw new UnauthorizedException('Refresh токен відсутній');
     }
 
     try {
@@ -33,11 +33,11 @@ export class JwtCookieAuthGuard implements CanActivate {
     } catch (e) {
       if (e instanceof TokenExpiredError) {
         throw new UnauthorizedException({
-          message: 'Термін дії refresh токену закінчився.',
+          message: 'Термін дії refresh токену закінчився',
         });
       }
       throw new UnauthorizedException({
-        message: 'Refresh токен не валідний.',
+        message: 'Refresh токен не валідний',
       });
     }
   }

@@ -32,14 +32,14 @@ export class RolesGuard implements CanActivate {
     const authHeader = headers.authorization;
 
     if (!authHeader) {
-      throw new UnauthorizedException('Заголовок Authorization відсутній.');
+      throw new UnauthorizedException('Заголовок Authorization відсутній');
     }
 
     const [bearer, token] = authHeader.split(' ');
 
     if (bearer.toLowerCase() !== 'bearer' || !token) {
       throw new UnauthorizedException({
-        message: 'Невірний формат access токену.',
+        message: 'Невірний формат access токену',
       });
     }
 
@@ -55,10 +55,10 @@ export class RolesGuard implements CanActivate {
     } catch (e) {
       if (e instanceof TokenExpiredError) {
         throw new UnauthorizedException({
-          message: 'Термін дії access токену закінчився.',
+          message: 'Термін дії access токену закінчився',
         });
       }
-      throw new UnauthorizedException({ message: 'Токен не валідний.' });
+      throw new UnauthorizedException({ message: 'Токен не валідний' });
     }
   }
 }
