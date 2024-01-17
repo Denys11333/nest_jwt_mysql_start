@@ -1,3 +1,4 @@
+import { CreateUserDeviceDto } from 'src/user-device/dto/create-user-device.dto';
 import {
   HttpException,
   HttpStatus,
@@ -14,21 +15,52 @@ import { Response } from 'express';
 import { Request } from 'express';
 import { PayloadUserDto } from 'src/user/dto/payload-user.dto';
 import { ConfigService } from '@nestjs/config';
+import { UAParser } from 'ua-parser-js';
+import { UserDeviceService } from 'src/user-device/user-device.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private userDeviceService: UserDeviceService,
   ) {}
 
   configService = new ConfigService();
 
-  async login(response: Response, userDto: CreateUserDto) {
+  getUserDeviceInfoFromUserAgent(userAgent: string, ipAddress: string) {
+    const OSInfo = UAParser(userAgent).os;
+
+    return {
+      operationSystem: `${OSInfo.name}-${OSInfo.version}`,
+      ipAddress: ipAddress,
+    } as CreateUserDeviceDto;
+  }
+
+  async login(
+    response: Response,
+    userDto: CreateUserDto,
+    userAgent: string,
+    ipAddress: string,
+  ) {
     const user = await this.validateUser(userDto);
+
+    const detectedDevice = this.getUserDeviceInfoFromUserAgent(
+      userAgent,
+      ipAddress,
+    );
+
+    const userDevice = await this.userService.addUserDeviceIfNotExist(user, {
+      ...detectedDevice,
+      user,
+    });
+
     const tokens = await this.generateTokens(user);
 
-    await this.userService.setRefreshToken(user.id, tokens.refreshToken);
+    await this.userDeviceService.setRefreshToken(
+      userDevice,
+      tokens.refreshToken,
+    );
 
     response.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
@@ -36,11 +68,15 @@ export class AuthService {
       sameSite: 'strict',
     });
 
-    return tokens;
+    return { accessToken: tokens.accessToken };
   }
 
-  async registration(userCredential: CreateUserDto) {
-    const candidate = await this.userService.findUserForAuth(
+  async registration(
+    userCredential: CreateUserDto,
+    userAgent: string,
+    ipAddress: string,
+  ) {
+    const candidate = await this.userService.findUserByUsername(
       userCredential.username,
     );
 
@@ -53,16 +89,19 @@ export class AuthService {
 
     const hashPassword = await bcrypt.hash(userCredential.password, 5);
 
-    await this.userService.createUser({
-      ...userCredential,
-      password: hashPassword,
-    });
+    await this.userService.createUser(
+      {
+        ...userCredential,
+        password: hashPassword,
+      },
+      this.getUserDeviceInfoFromUserAgent(userAgent, ipAddress),
+    );
 
     return 'Користувач зареєстрованний';
   }
 
   private async validateUser(userCredential: CreateUserDto) {
-    const user = await this.userService.findUserForAuth(
+    const user = await this.userService.findUserByUsername(
       userCredential.username,
     );
 
@@ -93,7 +132,7 @@ export class AuthService {
       roles: user.roles.map((role) => role.roleName),
     };
 
-    const refreshTokenPayLoad = {
+    const refreshTokenPayload = {
       username: user.username,
       tokenId: uuidv4(),
     };
@@ -106,7 +145,7 @@ export class AuthService {
         expiresIn:
           this.configService.get<string>('ACCESS_TOKEN_EXPIRATION') || '15m',
       }),
-      this.jwtService.signAsync(refreshTokenPayLoad, {
+      this.jwtService.signAsync(refreshTokenPayload, {
         secret:
           this.configService.get<string>('REFRESH_TOKEN_SECRET') ||
           'SECRET__REFRESH',
@@ -125,24 +164,50 @@ export class AuthService {
     response: Response,
     request: Request,
     currentUser: PayloadUserDto,
+    userAgent: string,
+    ipAddress: string,
   ) {
     const oldRefreshToken = request.cookies['refreshToken'];
 
     if (!currentUser) {
-      throw new UnauthorizedException('Incorect refresh token.');
-    }
-
-    const user = await this.userService.findUserForAuth(currentUser.username);
-
-    if (user.refreshToken !== oldRefreshToken) {
       throw new UnauthorizedException(
         'Refresh токен не дійсний для теперішнього користувача',
       );
     }
 
+    const user = await this.userService.findUserByUsername(
+      currentUser.username,
+    );
+
+    const detectedUserDevice = this.getUserDeviceInfoFromUserAgent(
+      userAgent,
+      ipAddress,
+    );
+
+    const userDevice = user.userDevices.find(
+      (device) =>
+        device.operationSystem === detectedUserDevice.operationSystem &&
+        device.ipAddress === detectedUserDevice.ipAddress,
+    );
+
+    if (!userDevice) {
+      throw new UnauthorizedException(
+        `Refresh токен не дійсний для теперішнього користувача`,
+      );
+    }
+
+    if (userDevice.refreshToken !== oldRefreshToken) {
+      throw new UnauthorizedException(
+        `Refresh токен не дійсний для теперішнього користувача`,
+      );
+    }
+
     const tokens = await this.generateTokens(user);
 
-    await this.userService.setRefreshToken(user.id, tokens.refreshToken);
+    await this.userDeviceService.setRefreshToken(
+      userDevice,
+      tokens.refreshToken,
+    );
 
     await response.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,

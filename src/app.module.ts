@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from './database.config';
 import { UserModule } from './user/user.module';
 import { MyLoggerModule } from './my-logger/my-logger.module';
+import { UserDeviceModule } from './user-device/user-device.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MyLoggerModule } from './my-logger/my-logger.module';
     AuthModule,
     RoleModule,
     MyLoggerModule,
+    UserDeviceModule,
   ],
   controllers: [],
   providers: [],

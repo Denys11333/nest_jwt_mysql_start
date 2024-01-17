@@ -6,6 +6,8 @@ import {
   Req,
   Res,
   UseGuards,
+  Headers,
+  Ip,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtHeaderAuthGuard } from './guards/jwt-header-auth.guard';
@@ -44,8 +46,15 @@ export class AuthController {
   login(
     @Res({ passthrough: true }) response: Response,
     @Body() userCredentialDto: CreateUserDto,
+    @Headers('user-agent') userAgent: string,
+    @Ip() ipAddress: string,
   ) {
-    return this.authService.login(response, userCredentialDto);
+    return this.authService.login(
+      response,
+      userCredentialDto,
+      userAgent,
+      ipAddress,
+    );
   }
 
   @ApiOperation({})
@@ -56,8 +65,16 @@ export class AuthController {
     },
   })
   @Post('registration')
-  registration(@Body() userCredentialDto: CreateUserDto) {
-    return this.authService.registration(userCredentialDto);
+  registration(
+    @Body() userCredentialDto: CreateUserDto,
+    @Headers('user-agent') userAgent: string,
+    @Ip() ipAddress: string,
+  ) {
+    return this.authService.registration(
+      userCredentialDto,
+      userAgent,
+      ipAddress,
+    );
   }
 
   @ApiOperation({})
@@ -68,8 +85,16 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
     @CurrentUser() user: PayloadUserDto,
+    @Headers('user-agent') userAgent: string,
+    @Ip() ipAddress: string,
   ) {
-    return await this.authService.refreshAccessToken(response, request, user);
+    return await this.authService.refreshAccessToken(
+      response,
+      request,
+      user,
+      userAgent,
+      ipAddress,
+    );
   }
 
   @ApiOperation({})
