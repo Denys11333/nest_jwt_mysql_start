@@ -3,16 +3,16 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { JwtModule } from '@nestjs/jwt';
-import { UserDeviceService } from 'src/user-device/user-device.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserDevice } from 'src/user-device/entities/user-device.entity';
+import { UserSessionCookieService } from 'src/user-session-cookie/user-session-cookie.service';
+import { UserSessionCookie } from 'src/user-session-cookie/entities/user-session-cookie.entity';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, UserDeviceService],
+  providers: [AuthService, UserSessionCookieService],
   imports: [
     forwardRef(() => UserModule),
-    TypeOrmModule.forFeature([UserDevice]),
+    TypeOrmModule.forFeature([UserSessionCookie]),
     JwtModule.register({}),
   ],
   exports: [AuthService, JwtModule],

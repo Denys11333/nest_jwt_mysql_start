@@ -68,38 +68,22 @@ export class AuthController {
     },
   })
   @Post('registration')
-  registration(
-    @Body() userCredentialDto: CreateUserDto,
-    @Headers('user-agent') userAgent: string,
-    @Ip() ipAddress: string,
-  ) {
-    return this.authService.registration(
-      userCredentialDto,
-      userAgent,
-      ipAddress,
-    );
+  registration(@Body() userCredentialDto: CreateUserDto) {
+    return this.authService.registration(userCredentialDto);
   }
 
   @ApiOperation({})
   @ApiResponse({})
   @UseGuards(JwtCookieAuthGuard)
   @UseInterceptors(CurrentUserInterceptor)
-  @UserRelations({ roles: true, userDevices: true })
+  @UserRelations({ roles: true, userSessionsCookie: true })
   @Get('refresh')
   async refreshAccessToken(
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
     @CurrentUser() user: User,
-    @Headers('user-agent') userAgent: string,
-    @Ip() ipAddress: string,
   ) {
-    return await this.authService.refreshAccessToken(
-      response,
-      request,
-      user,
-      userAgent,
-      ipAddress,
-    );
+    return await this.authService.refreshAccessToken(response, request, user);
   }
 
   @ApiOperation({})

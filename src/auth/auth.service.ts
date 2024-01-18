@@ -1,4 +1,3 @@
-import { CreateUserDeviceDto } from 'src/user-device/dto/create-user-device.dto';
 import {
   HttpException,
   HttpStatus,
@@ -16,26 +15,18 @@ import { Request } from 'express';
 import { PayloadUserDto } from 'src/user/dto/payload-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { UAParser } from 'ua-parser-js';
-import { UserDeviceService } from 'src/user-device/user-device.service';
+import { UserSessionCookieService } from 'src/user-session-cookie/user-session-cookie.service';
+import { CreateUserSessionCookieDto } from 'src/user-session-cookie/dto/create-user-session-cookie.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private userDeviceService: UserDeviceService,
+    private userSessionCookieService: UserSessionCookieService,
   ) {}
 
   configService = new ConfigService();
-
-  getUserDeviceInfoFromUserAgent(userAgent: string, ipAddress: string) {
-    const OSInfo = UAParser(userAgent).os;
-
-    return {
-      operationSystem: `${OSInfo.name}-${OSInfo.version}`,
-      ipAddress: ipAddress,
-    } as CreateUserDeviceDto;
-  }
 
   async login(
     response: Response,
@@ -45,37 +36,30 @@ export class AuthService {
   ) {
     const user = await this.validateUser(userDto);
 
-    const detectedDevice = this.getUserDeviceInfoFromUserAgent(
-      userAgent,
-      ipAddress,
-    );
-
-    const userDevice = await this.userService.addUserDeviceIfNotExist(user, {
-      ...detectedDevice,
-      user,
-    });
-
     const tokens = await this.generateTokens(user);
 
-    await this.userDeviceService.setRefreshToken(
-      userDevice,
+    const userSessionCookieDto = this.createUserSessionCookie(
+      userAgent,
+      ipAddress,
       tokens.refreshToken,
     );
 
-    response.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
+    const userSessionCookie = await this.userService.addUserDeviceIfNotExist({
+      ...userSessionCookieDto,
+      user,
     });
+
+    await this.userSessionCookieService.setRefreshToken(
+      userSessionCookie,
+      tokens.refreshToken,
+    );
+
+    this.setCookie(response, 'refreshToken', tokens.refreshToken);
 
     return { accessToken: tokens.accessToken };
   }
 
-  async registration(
-    userCredential: CreateUserDto,
-    userAgent: string,
-    ipAddress: string,
-  ) {
+  async registration(userCredential: CreateUserDto) {
     const candidate = await this.userService.findUserByUsername(
       userCredential.username,
     );
@@ -89,13 +73,10 @@ export class AuthService {
 
     const hashPassword = await bcrypt.hash(userCredential.password, 5);
 
-    await this.userService.createUser(
-      {
-        ...userCredential,
-        password: hashPassword,
-      },
-      this.getUserDeviceInfoFromUserAgent(userAgent, ipAddress),
-    );
+    await this.userService.createUser({
+      ...userCredential,
+      password: hashPassword,
+    });
 
     return 'Користувач зареєстрованний';
   }
@@ -103,7 +84,7 @@ export class AuthService {
   private async validateUser(userCredential: CreateUserDto) {
     const user = await this.userService.findUserByUsername(
       userCredential.username,
-      { roles: true, userDevices: true },
+      { roles: true, userSessionsCookie: true },
     );
 
     if (!user) {
@@ -165,8 +146,6 @@ export class AuthService {
     response: Response,
     request: Request,
     currentUser: User,
-    userAgent: string,
-    ipAddress: string,
   ) {
     const oldRefreshToken = request.cookies['refreshToken'];
 
@@ -174,24 +153,11 @@ export class AuthService {
       throw new UnauthorizedException('Refresh токен не валідний');
     }
 
-    const detectedUserDevice = this.getUserDeviceInfoFromUserAgent(
-      userAgent,
-      ipAddress,
+    const userSessionCookie = currentUser.userSessionsCookie.find(
+      (device) => device.refreshToken === oldRefreshToken,
     );
 
-    const userDevice = currentUser.userDevices.find(
-      (device) =>
-        device.operationSystem === detectedUserDevice.operationSystem &&
-        device.ipAddress === detectedUserDevice.ipAddress,
-    );
-
-    if (!userDevice) {
-      throw new UnauthorizedException(
-        `Refresh токен не дійсний для теперішнього користувача`,
-      );
-    }
-
-    if (userDevice.refreshToken !== oldRefreshToken) {
+    if (!userSessionCookie) {
       throw new UnauthorizedException(
         `Refresh токен не дійсний для теперішнього користувача`,
       );
@@ -199,17 +165,49 @@ export class AuthService {
 
     const tokens = await this.generateTokens(currentUser);
 
-    await this.userDeviceService.setRefreshToken(
-      userDevice,
+    await this.userSessionCookieService.setRefreshToken(
+      {
+        ...userSessionCookie,
+        deletedAt: this.getExpirationDateFromToken(tokens.refreshToken),
+      },
       tokens.refreshToken,
     );
 
-    await response.cookie('refreshToken', tokens.refreshToken, {
+    this.setCookie(response, 'refreshToken', tokens.refreshToken);
+
+    return { accessToken: tokens.accessToken };
+  }
+
+  createUserSessionCookie(
+    userAgent: string,
+    ipAddress: string,
+    refreshToken: string,
+  ) {
+    const OSInfo = UAParser(userAgent).os;
+
+    return {
+      operationSystem: `${OSInfo.name}-${OSInfo.version}`,
+      ipAddress: ipAddress,
+      deletedAt: this.getExpirationDateFromToken(refreshToken),
+    } as CreateUserSessionCookieDto;
+  }
+
+  getExpirationDateFromToken(token) {
+    const deletedAt = this.jwtService.decode(token)['exp'];
+
+    const date = new Date(deletedAt * 1000);
+    const formattedDate = date.toLocaleString('en-US', {
+      timeZone: 'Europe/Kiev',
+    });
+
+    return new Date(formattedDate);
+  }
+
+  setCookie(response: Response, cookieName: string, cookieValue: string) {
+    response.cookie(cookieName, cookieValue, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
     });
-
-    return { accessToken: tokens.accessToken };
   }
 }

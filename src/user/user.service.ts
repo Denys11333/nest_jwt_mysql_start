@@ -1,4 +1,3 @@
-import { CreateUserDeviceDto } from './../user-device/dto/create-user-device.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,21 +5,19 @@ import { RoleService } from '../role/role.service';
 import { CreateRoleDto } from '../role/dto/create-role.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
-import { UserDeviceService } from 'src/user-device/user-device.service';
 import { UserQueryOptions } from './options/user-query.options';
+import { UserSessionCookieService } from 'src/user-session-cookie/user-session-cookie.service';
+import { CreateUserSessionCookieDto } from 'src/user-session-cookie/dto/create-user-session-cookie.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private roleService: RoleService,
-    private userDeviceService: UserDeviceService,
+    private userSessionCookieService: UserSessionCookieService,
   ) {}
 
-  async createUser(
-    createUserDto: CreateUserDto,
-    createUserDeviceDto: CreateUserDeviceDto,
-  ) {
+  async createUser(createUserDto: CreateUserDto) {
     let role = await this.roleService.getRoleByValue('USER');
 
     if (!role) {
@@ -32,12 +29,9 @@ export class UserService {
       role = await this.roleService.createRole(createdRole);
     }
 
-    const userDevice = await this.userDeviceService.create(createUserDeviceDto);
-
     return await this.userRepository.save({
       ...createUserDto,
       roles: [role],
-      userDevices: [userDevice],
     });
   }
 
@@ -49,19 +43,8 @@ export class UserService {
   }
 
   async addUserDeviceIfNotExist(
-    user: User,
-    createUserDeviceDto: CreateUserDeviceDto,
+    createUserSessionCookie: CreateUserSessionCookieDto,
   ) {
-    const detectedDevice = await user.userDevices.find(
-      (userDevice) =>
-        userDevice.operationSystem === createUserDeviceDto.operationSystem &&
-        userDevice.ipAddress === createUserDeviceDto.ipAddress,
-    );
-
-    if (!detectedDevice) {
-      return await this.userDeviceService.create(createUserDeviceDto);
-    }
-
-    return detectedDevice;
+    return await this.userSessionCookieService.create(createUserSessionCookie);
   }
 }

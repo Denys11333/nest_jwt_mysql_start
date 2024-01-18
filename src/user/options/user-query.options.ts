@@ -1,10 +1,10 @@
 export class UserQueryOptions {
-  userDevices?: boolean = false;
+  userSessionsCookie?: boolean = false;
   roles?: boolean = false;
 
   constructor(options?: UserQueryOptions) {
     if (options) {
-      this.userDevices = options.userDevices;
+      this.userSessionsCookie = options.userSessionsCookie;
       this.roles = options.roles;
     }
   }

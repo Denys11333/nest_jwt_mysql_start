@@ -3,7 +3,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class UserDevice {
+export class UserSessionCookie {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
@@ -21,6 +21,10 @@ export class UserDevice {
   refreshToken: string;
 
   @ApiProperty()
-  @ManyToOne(() => User, (user) => user.userDevices)
+  @Column({ type: 'timestamp' })
+  deletedAt: Date;
+
+  @ApiProperty()
+  @ManyToOne(() => User, (user) => user.userSessionsCookie)
   user: User;
 }

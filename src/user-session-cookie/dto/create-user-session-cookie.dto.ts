@@ -1,9 +1,11 @@
 import { User } from 'src/user/entities/user.entity';
 
-export class CreateUserDeviceDto {
+export class CreateUserSessionCookieDto {
   operationSystem: string;
 
   ipAddress: string;
+
+  deletedAt: Date;
 
   user: User;
 }

@@ -1,3 +1,4 @@
+import { UserSessionCookie } from 'src/user-session-cookie/entities/user-session-cookie.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,7 +9,6 @@ import {
 } from 'typeorm';
 import { Role } from '../../role/entities/role.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserDevice } from 'src/user-device/entities/user-device.entity';
 
 @Entity()
 export class User {
@@ -25,10 +25,14 @@ export class User {
   password: string;
 
   @ApiProperty()
-  @OneToMany(() => UserDevice, (userDeivce) => userDeivce.user, {
-    cascade: true,
-  })
-  userDevices: UserDevice[];
+  @OneToMany(
+    () => UserSessionCookie,
+    (userSessionCookie) => userSessionCookie.user,
+    {
+      cascade: true,
+    },
+  )
+  userSessionsCookie: UserSessionCookie[];
 
   @ApiProperty()
   @ManyToMany(() => Role)
