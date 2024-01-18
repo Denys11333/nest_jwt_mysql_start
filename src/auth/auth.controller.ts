@@ -8,6 +8,7 @@ import {
   UseGuards,
   Headers,
   Ip,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtHeaderAuthGuard } from './guards/jwt-header-auth.guard';
@@ -22,7 +23,9 @@ import { Response } from 'express';
 import { Request } from 'express';
 import { JwtCookieAuthGuard } from './guards/jwt-cookie-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { PayloadUserDto } from 'src/user/dto/payload-user.dto';
+import { User } from 'src/user/entities/user.entity';
+import { CurrentUserInterceptor } from './interceptors/current-user.interceptor';
+import { UserRelations } from './decorators/relations-user.decorator';
 
 @ApiTags('Authorization')
 @Controller('v1/authorization')
@@ -80,11 +83,13 @@ export class AuthController {
   @ApiOperation({})
   @ApiResponse({})
   @UseGuards(JwtCookieAuthGuard)
+  @UseInterceptors(CurrentUserInterceptor)
+  @UserRelations({ roles: true, userDevices: true })
   @Get('refresh')
   async refreshAccessToken(
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
-    @CurrentUser() user: PayloadUserDto,
+    @CurrentUser() user: User,
     @Headers('user-agent') userAgent: string,
     @Ip() ipAddress: string,
   ) {

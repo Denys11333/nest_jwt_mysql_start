@@ -7,6 +7,7 @@ import { CreateRoleDto } from '../role/dto/create-role.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { UserDeviceService } from 'src/user-device/user-device.service';
+import { UserQueryOptions } from './options/user-query.options';
 
 @Injectable()
 export class UserService {
@@ -40,13 +41,10 @@ export class UserService {
     });
   }
 
-  async findUserByUsername(username: string) {
+  async findUserByUsername(username: string, queryOptions?: UserQueryOptions) {
     return await this.userRepository.findOne({
       where: { username: username },
-      relations: {
-        roles: true,
-        userDevices: true,
-      },
+      relations: queryOptions,
     });
   }
 

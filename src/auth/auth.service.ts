@@ -103,6 +103,7 @@ export class AuthService {
   private async validateUser(userCredential: CreateUserDto) {
     const user = await this.userService.findUserByUsername(
       userCredential.username,
+      { roles: true, userDevices: true },
     );
 
     if (!user) {
@@ -163,28 +164,22 @@ export class AuthService {
   async refreshAccessToken(
     response: Response,
     request: Request,
-    currentUser: PayloadUserDto,
+    currentUser: User,
     userAgent: string,
     ipAddress: string,
   ) {
     const oldRefreshToken = request.cookies['refreshToken'];
 
     if (!currentUser) {
-      throw new UnauthorizedException(
-        'Refresh токен не дійсний для теперішнього користувача',
-      );
+      throw new UnauthorizedException('Refresh токен не валідний');
     }
-
-    const user = await this.userService.findUserByUsername(
-      currentUser.username,
-    );
 
     const detectedUserDevice = this.getUserDeviceInfoFromUserAgent(
       userAgent,
       ipAddress,
     );
 
-    const userDevice = user.userDevices.find(
+    const userDevice = currentUser.userDevices.find(
       (device) =>
         device.operationSystem === detectedUserDevice.operationSystem &&
         device.ipAddress === detectedUserDevice.ipAddress,
@@ -202,7 +197,7 @@ export class AuthService {
       );
     }
 
-    const tokens = await this.generateTokens(user);
+    const tokens = await this.generateTokens(currentUser);
 
     await this.userDeviceService.setRefreshToken(
       userDevice,
