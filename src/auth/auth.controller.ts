@@ -19,8 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateUserDto } from '../user/dto/create-user.dto';
-import { Response } from 'express';
-import { Request } from 'express';
+import { Response, Request } from 'express';
 import { JwtCookieAuthGuard } from './guards/jwt-cookie-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from 'src/user/entities/user.entity';

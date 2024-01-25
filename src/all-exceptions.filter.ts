@@ -1,9 +1,4 @@
-import {
-  ArgumentsHost,
-  HttpStatus,
-  HttpException,
-  Catch,
-} from '@nestjs/common';
+import { ArgumentsHost, HttpException, Catch } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Request, Response } from 'express';
 import { MyLoggerService } from './my-logger/my-logger.service';
@@ -13,6 +8,7 @@ type MyResponseObj = {
   timestamp: string;
   path: string;
   response: string | object;
+  message?: any;
 };
 
 @Catch()
@@ -28,15 +24,14 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
       statusCode: 500,
       timestamp: new Date().toISOString(),
       path: request.url,
-      response: '',
+      response: 'Internal Server Error',
+      message: '',
     };
 
     if (exception instanceof HttpException) {
       myResponseObj.statusCode = exception.getStatus();
       myResponseObj.response = exception.message;
-    } else {
-      myResponseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      myResponseObj.response = 'Internal Server Error';
+      myResponseObj.message = exception.getResponse()['message'];
     }
 
     response.status(myResponseObj.statusCode).json(myResponseObj);
