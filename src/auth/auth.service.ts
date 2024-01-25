@@ -203,10 +203,14 @@ export class AuthService {
   }
 
   setCookie(response: Response, cookieName: string, cookieValue: string) {
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+
     response.cookie(cookieName, cookieValue, {
-      httpOnly: true,
       secure: true,
+      httpOnly: true,
       sameSite: 'strict',
+      expires: date,
     });
   }
 }
