@@ -37,13 +37,13 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user);
 
-    const userSessionCookieDto = this.createUserSessionCookie(
+    const userSessionCookieDto = this.createUserSessionCookieDto(
       userAgent,
       ipAddress,
       tokens.refreshToken,
     );
 
-    const userSessionCookie = await this.userService.addUserDeviceIfNotExist({
+    const userSessionCookie = await this.userService.createUserSessionCookie({
       ...userSessionCookieDto,
       user,
     });
@@ -177,7 +177,7 @@ export class AuthService {
     return { accessToken: tokens.accessToken };
   }
 
-  createUserSessionCookie(
+  createUserSessionCookieDto(
     userAgent: string,
     ipAddress: string,
     refreshToken: string,

@@ -42,7 +42,7 @@ export class UserService {
     });
   }
 
-  async addUserDeviceIfNotExist(
+  async createUserSessionCookie(
     createUserSessionCookie: CreateUserSessionCookieDto,
   ) {
     return await this.userSessionCookieService.create(createUserSessionCookie);
