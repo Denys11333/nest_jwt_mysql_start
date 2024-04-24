@@ -1,4 +1,4 @@
-import { UserSessionCookie } from 'src/user-session-cookie/entities/user-session-cookie.entity';
+import { UserSession } from 'src/user-session/entities/user-session-cookie.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -25,14 +25,10 @@ export class User {
   password: string;
 
   @ApiProperty()
-  @OneToMany(
-    () => UserSessionCookie,
-    (userSessionCookie) => userSessionCookie.user,
-    {
-      cascade: true,
-    },
-  )
-  userSessionsCookie: UserSessionCookie[];
+  @OneToMany(() => UserSession, (userSession) => userSession.user, {
+    cascade: true,
+  })
+  userSessions: UserSession[];
 
   @ApiProperty()
   @ManyToMany(() => Role)

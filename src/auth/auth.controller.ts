@@ -24,7 +24,7 @@ import { JwtCookieAuthGuard } from './guards/jwt-cookie-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { CurrentUserInterceptor } from './interceptors/current-user.interceptor';
-import { UserRelations } from './decorators/relations-user.decorator';
+import { UserRelations } from './decorators/user-relations.decorator';
 
 @ApiTags('Authorization')
 @Controller('v1/authorization')
@@ -75,7 +75,7 @@ export class AuthController {
   @ApiResponse({})
   @UseGuards(JwtCookieAuthGuard)
   @UseInterceptors(CurrentUserInterceptor)
-  @UserRelations({ roles: true, userSessionsCookie: true })
+  @UserRelations({ roles: true, userSessions: true })
   @Get('refresh')
   async refreshAccessToken(
     @Res({ passthrough: true }) response: Response,

@@ -6,14 +6,14 @@ import { AuthModule } from '../auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
-import { UserSessionCookieService } from 'src/user-session-cookie/user-session-cookie.service';
-import { UserSessionCookie } from 'src/user-session-cookie/entities/user-session-cookie.entity';
+import { UserSessionService } from 'src/user-session/user-session.service';
+import { UserSession } from 'src/user-session/entities/user-session-cookie.entity';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, UserSessionCookieService],
+  providers: [UserService, UserSessionService],
   imports: [
-    TypeOrmModule.forFeature([User, UserSessionCookie, Role]),
+    TypeOrmModule.forFeature([User, UserSession, Role]),
     RoleModule,
     forwardRef(() => AuthModule),
   ],

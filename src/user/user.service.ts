@@ -6,15 +6,14 @@ import { CreateRoleDto } from '../role/dto/create-role.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { UserQueryOptions } from './options/user-query.options';
-import { UserSessionCookieService } from 'src/user-session-cookie/user-session-cookie.service';
-import { CreateUserSessionCookieDto } from 'src/user-session-cookie/dto/create-user-session-cookie.dto';
+import { UserSessionService } from 'src/user-session/user-session.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private roleService: RoleService,
-    private userSessionCookieService: UserSessionCookieService,
+    private userSessionService: UserSessionService,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -40,11 +39,5 @@ export class UserService {
       where: { username: username },
       relations: queryOptions,
     });
-  }
-
-  async createUserSessionCookie(
-    createUserSessionCookie: CreateUserSessionCookieDto,
-  ) {
-    return await this.userSessionCookieService.create(createUserSessionCookie);
   }
 }

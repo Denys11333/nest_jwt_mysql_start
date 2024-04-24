@@ -3,7 +3,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class UserSessionCookie {
+export class UserSession {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
@@ -25,6 +25,6 @@ export class UserSessionCookie {
   deletedAt: Date;
 
   @ApiProperty()
-  @ManyToOne(() => User, (user) => user.userSessionsCookie)
+  @ManyToOne(() => User, (user) => user.userSessions)
   user: User;
 }

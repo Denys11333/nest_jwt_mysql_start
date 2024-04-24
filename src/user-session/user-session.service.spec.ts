@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserSessionCookieService } from './user-session-cookie.service';
+import { UserSessionCookieService } from './user-session.service';
 
 describe('UserSessionCookie', () => {
   let service: UserSessionCookieService;

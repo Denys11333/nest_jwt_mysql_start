@@ -3,7 +3,7 @@ import { TypeOrmOptionsFactory, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User } from './user/entities/user.entity';
 import { Role } from './role/entities/role.entity';
-import { UserSessionCookie } from './user-session-cookie/entities/user-session-cookie.entity';
+import { UserSession } from './user-session/entities/user-session-cookie.entity';
 
 @Injectable()
 export class DatabaseConfigService implements TypeOrmOptionsFactory {
@@ -17,7 +17,7 @@ export class DatabaseConfigService implements TypeOrmOptionsFactory {
       password: this.configService.get('MYSQL_PASSWORD'),
       port: Number(this.configService.get('MYSQL_PORT')),
       username: this.configService.get('MYSQL_USER'),
-      entities: [User, UserSessionCookie, Role],
+      entities: [User, Role, UserSession],
       synchronize: true,
     };
   }

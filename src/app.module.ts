@@ -6,7 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from './database.config';
 import { UserModule } from './user/user.module';
 import { MyLoggerModule } from './my-logger/my-logger.module';
-import { UserSessionCookieModule } from './user-session-cookie/user-session-cookie.module';
+import { UserSessionModule } from './user-session/user-session.module';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { UserSessionCookieModule } from './user-session-cookie/user-session-cook
     AuthModule,
     RoleModule,
     MyLoggerModule,
-    UserSessionCookieModule,
+    UserSessionModule,
   ],
   controllers: [],
   providers: [],

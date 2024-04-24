@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserSessionCookieController } from './user-session-cookie.controller';
-import { UserSessionCookieService } from './user-session-cookie.service';
+import { UserSessionCookieController } from './user-session.controller';
+import { UserSessionCookieService } from './user-session.service';
 
 describe('UserSessionCookie', () => {
   let controller: UserSessionCookieController;

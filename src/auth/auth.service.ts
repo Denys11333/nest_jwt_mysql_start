@@ -14,15 +14,15 @@ import { Response, Request } from 'express';
 import { PayloadUserDto } from 'src/user/dto/payload-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { UAParser } from 'ua-parser-js';
-import { UserSessionCookieService } from 'src/user-session-cookie/user-session-cookie.service';
-import { CreateUserSessionCookieDto } from 'src/user-session-cookie/dto/create-user-session-cookie.dto';
+import { UserSessionService } from 'src/user-session/user-session.service';
+import { CreateUserSessionDto } from 'src/user-session/dto/create-user-session.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private userSessionCookieService: UserSessionCookieService,
+    private userSessionService: UserSessionService,
   ) {}
 
   configService = new ConfigService();
@@ -37,18 +37,18 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user);
 
-    const userSessionCookieDto = this.createUserSessionCookieDto(
+    const userSessionCookieDto = this.createUserSessionDto(
       userAgent,
       ipAddress,
       tokens.refreshToken,
     );
 
-    const userSessionCookie = await this.userService.createUserSessionCookie({
+    const userSessionCookie = await this.userSessionService.createSession({
       ...userSessionCookieDto,
       user,
     });
 
-    await this.userSessionCookieService.setRefreshToken(
+    await this.userSessionService.setRefreshToken(
       userSessionCookie,
       tokens.refreshToken,
     );
@@ -83,7 +83,7 @@ export class AuthService {
   private async validateUser(userCredential: CreateUserDto) {
     const user = await this.userService.findUserByUsername(
       userCredential.username,
-      { roles: true, userSessionsCookie: true },
+      { roles: true, userSessions: true },
     );
 
     if (!user) {
@@ -146,38 +146,35 @@ export class AuthService {
     request: Request,
     currentUser: User,
   ) {
-    const oldRefreshToken = request.cookies['refreshToken'];
+    const currentRefreshToken = request.cookies['refreshToken'];
 
     if (!currentUser) {
       throw new UnauthorizedException('Refresh токен не валідний');
     }
 
-    const userSessionCookie = currentUser.userSessionsCookie.find(
-      (device) => device.refreshToken === oldRefreshToken,
+    const userSession = currentUser.userSessions.find(
+      (userSession) => userSession.refreshToken === currentRefreshToken,
     );
 
-    if (!userSessionCookie) {
-      throw new UnauthorizedException(
-        `Refresh токен не дійсний для теперішнього користувача`,
-      );
+    if (!userSession) {
+      throw new UnauthorizedException(`Існуюча сесія не знайдена`);
     }
 
     const tokens = await this.generateTokens(currentUser);
 
-    await this.userSessionCookieService.setRefreshToken(
+    await this.userSessionService.setRefreshToken(
       {
-        ...userSessionCookie,
+        ...userSession,
         deletedAt: this.getExpirationDateFromToken(tokens.refreshToken),
       },
       tokens.refreshToken,
     );
 
     this.setCookie(response, 'refreshToken', tokens.refreshToken);
-
     return { accessToken: tokens.accessToken };
   }
 
-  createUserSessionCookieDto(
+  createUserSessionDto(
     userAgent: string,
     ipAddress: string,
     refreshToken: string,
@@ -188,7 +185,7 @@ export class AuthService {
       operationSystem: `${OSInfo.name}-${OSInfo.version}`,
       ipAddress: ipAddress,
       deletedAt: this.getExpirationDateFromToken(refreshToken),
-    } as CreateUserSessionCookieDto;
+    } as CreateUserSessionDto;
   }
 
   getExpirationDateFromToken(token) {

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserService } from 'src/user/user.service';
-import { RELATIONS_KEY } from '../decorators/relations-user.decorator';
+import { RELATIONS_KEY } from '../decorators/user-relations.decorator';
 import { UserQueryOptions } from 'src/user/options/user-query.options';
 
 @Injectable()
