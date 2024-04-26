@@ -83,7 +83,7 @@ export class AuthService {
   private async validateUser(userCredential: CreateUserDto) {
     const user = await this.userService.findUserByUsername(
       userCredential.username,
-      { roles: true, userSessions: true },
+      { roles: true },
     );
 
     if (!user) {
